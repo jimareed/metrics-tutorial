@@ -3,6 +3,9 @@ services:
   items:
     image: metrics-tutorial
     container_name: items
+    environment:
+      - FAILURE_RATE=10
+      - RESPONSE_TIME=50
     ports:
       - "8081:8080"
     networks:
@@ -12,6 +15,7 @@ services:
     container_name: test
     environment:
       - ITEMS_SERVICE_URL=http://0.0.0.0:8080
+      - ITERATIONS=100
     ports:
       - "8082:8080"
     networks:
