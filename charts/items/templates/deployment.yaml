@@ -26,8 +26,6 @@ spec:
           env:
             - name: FAILURE_RATE
               value: "{{ .Values.failureRate }}"
-            - name: RESPONSE_TIME
-              value: "{{ .Values.responseTime }}"
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

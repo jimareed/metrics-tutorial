@@ -13,8 +13,7 @@ service:
   type: ClusterIP
   port: 8080
 
-responseTime: 10
-failureRate: 25
+failureRate: 0
 
 ingress:
   enabled: false

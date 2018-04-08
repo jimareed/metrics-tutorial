@@ -8,4 +8,5 @@ set -eu
 BINARY="$1"
 
 rm -f "$BINARY"
+go get github.com/prometheus/client_golang/prometheus
 go build -o ./"$BINARY" ./main.go

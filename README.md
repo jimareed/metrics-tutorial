@@ -65,6 +65,8 @@ $ kubectl get secret --namespace default grafana -o jsonpath="{.data.grafana-adm
 xxxxxxxx
 ```
 
+
+
 Build the docker image locally which contains two services:
 ```
 $ make build-docker
@@ -88,4 +90,53 @@ Starting test  ... done
 ```
 $ helm install --name items ./charts/items
 $ helm install --name test ./charts/test
+```
+
+```
+$ kubectl get pods
+NAME                                             READY     STATUS    RESTARTS   AGE
+grafana-55b57d567b-xkvs4                         1/1       Running   0          21h
+  .
+  .
+  .
+
+$ kubectl port-forward grafana-55b57d567b-xkvs4 3000
+Forwarding from 127.0.0.1:3000 -> 3000
+```
+
+```
+http://prometheus-prometheus-server.default.svc.cluster.local/
+```
+
+```
+$ vi main.go
+(add import to end of imports)
+"github.com/prometheus/client_golang/prometheus/promhttp"
+
+http.Handle("/metrics", promhttp.Handler())
+
+```
+```
+$vi build.sh
+(add go get before go build)
+go get github.com/prometheus/client_golang/prometheus
+
+```
+
+
+```
+$ vi charts/items/templates/service.yaml
+(add annotations for prometheus after labels)
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "items.fullname" . }}
+  labels:
+    app: {{ template "items.name" . }}
+    chart: {{ template "items.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: {{ .Values.service.port | quote }}
 ```

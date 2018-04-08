@@ -1,0 +1,9 @@
+#!/bin/bash
+
+counter=1
+while [ $counter -le 10 ]
+do
+curl localhost:8080/items
+((counter++))
+done
+echo All done

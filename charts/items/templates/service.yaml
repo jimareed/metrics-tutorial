@@ -7,6 +7,9 @@ metadata:
     chart: {{ template "items.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: {{ .Values.service.port | quote }}
 spec:
   type: {{ .Values.service.type }}
   ports:

@@ -1,5 +1,6 @@
 FROM golang:1.10-alpine AS builder
 RUN apk add --no-cache bash make
+RUN apk --update add git
 WORKDIR /go/src/github.com/jimareed/metrics-tutorial/
 COPY . /go/src/github.com/jimareed/metrics-tutorial/
 RUN make build
@@ -11,7 +12,7 @@ ARG VERSION
 ARG REVISION
 
 LABEL org.opencontainers.image.created=$CREATED
-LABEL org.opencontainers.image.url="helm-chart-tutorial"
+LABEL org.opencontainers.image.url="metrics-tutorial"
 LABEL org.opencontainers.image.source="https://github.com/jimareed/metrics-tutorial"
 LABEL org.opencontainers.image.version=$VERSION
 LABEL org.opencontainers.image.revision=$REVISION
