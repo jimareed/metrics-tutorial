@@ -105,7 +105,7 @@ dbfec4c268d3: Pull complete
 Successfully tagged metrics-tutorial:latest
 ```
 
-Try out service
+Try out the service
 ```
 $ docker-compose up -d
 Starting items ... done
@@ -116,9 +116,19 @@ $ curl localhost:8080/items
 $ docker-compose down
 ```
 
+Deploy the service to Kubernetes using Helm
 ```
 $ helm install --name items ./charts/items
 ```
+
+Verify the service is running in Kubernetes
+```
+$ kubectl port-forward items-d5b6bf545-fxh9z 8080
+(from another terminal session)
+$ curl localhost:8080/items
+[{"item":"apple"}, {"item":"orange"}, {"item":"pear"}]
+```
+
 
 add prometheus client and metrics handler
 ```
@@ -153,6 +163,8 @@ func main() {
   //           ^^^ add line    
 	// -----------------------------------------------
 ```
+
+get prometheus go client
 ```
 $vi build.sh
 (add go get before go build)
@@ -160,7 +172,7 @@ go get github.com/prometheus/client_golang/prometheus
 
 ```
 
-
+update the service.yaml file to enable prometheus:
 ```
 $ vi charts/items/templates/service.yaml
 apiVersion: v1
@@ -190,4 +202,12 @@ spec:
   selector:
     app: {{ template "items.name" . }}
     release: {{ .Release.Name }}
+```
+
+build container and re-install chart
+```
+$ make build-docker
+
+$ helm del --purge items
+$ helm install --name items ./charts/items
 ```
