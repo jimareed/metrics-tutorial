@@ -1,12 +1,12 @@
-# prometheus
+# metrics-tutorial
 This tutorial will walk through the following:
 - install promethus & grafana using helm
-- add metrics to your service
-- monitor SLI and SLO from grafana
+- add metrics to a docker service and deploy it to kubernetes
+- monitor the service from grafana
 
 **Prerequisites**: install docker, Kubernetes and helm and clone repo.
 
-![Prometheus Tutorial](./tutorial.png)
+![Metrics Tutorial](./tutorial.png)
 
 
 ```
@@ -34,8 +34,7 @@ prometheus-server-6966b574d7-6tm8g               1/2       Running   0          
 $ kubectl port-forward prometheus-server-6966b574d7-6tm8g 9090
 Forwarding from 127.0.0.1:9090 -> 9090
 ```
-
-http://localhost:9090/graph
+> Browse to http://localhost:9090/graph to see Prometheus
 
 
 ```
@@ -65,9 +64,15 @@ $ kubectl get secret --namespace default grafana -o jsonpath="{.data.grafana-adm
 xxxxxxxx
 ```
 
+> Browse to http://localhost:3000 to see Grafana
 
 
-Build the docker image locally which contains two services:
+Configure Grafana to connect to Prometheus:
+
+![New Data Source](./new-data-source.png)
+
+
+Build the docker image locally which contains the service we want to monitor:
 ```
 $ make build-docker
 ./build-docker.sh metrics-tutorial latest Dockerfile
