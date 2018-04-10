@@ -6,8 +6,12 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	// -----------------------------------------------
+	// add prometheus go client import:
+	//
+	// "github.com/prometheus/client_golang/prometheus/promhttp"
+	//
+	// -----------------------------------------------
 )
 
 // ItemList : list of items
@@ -19,7 +23,12 @@ func main() {
 	http.HandleFunc("/items", items)
 	http.HandleFunc("/", health)
 
-	http.Handle("/metrics", promhttp.Handler())
+	// -----------------------------------------------
+	// add metrics handler:
+	//
+	// http.Handle("/metrics", promhttp.Handler())
+	//
+	// -----------------------------------------------
 
 	http.ListenAndServe(":8080", nil)
 }

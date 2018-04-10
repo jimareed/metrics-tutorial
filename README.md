@@ -8,7 +8,7 @@ This tutorial will walk through the following:
 
 ![Metrics Tutorial](./tutorial.png)
 
-
+Install Prometheus
 ```
 $ $ helm install --name prometheus stable/prometheus
 NAME:   prometheus
@@ -30,6 +30,7 @@ prometheus-server-6966b574d7-6tm8g               1/2       Running   0          
 
 ```
 
+Port forward Prometheus to open in the browser
 ```
 $ kubectl port-forward prometheus-server-6966b574d7-6tm8g 9090
 Forwarding from 127.0.0.1:9090 -> 9090
@@ -37,6 +38,7 @@ Forwarding from 127.0.0.1:9090 -> 9090
 > Browse to http://localhost:9090/graph to see Prometheus
 
 
+Install Granafa
 ```
 $ helm install --name grafana stable/grafana
 NAME:   grafana
@@ -59,9 +61,26 @@ NOTES:
 
 ```
 
+Generate admin password
 ```
 $ kubectl get secret --namespace default grafana -o jsonpath="{.data.grafana-admin-password}" | base64 --decode ; echo
 xxxxxxxx
+```
+
+Port forward Grafana
+```
+$ kubectl get pods
+NAME                                             READY     STATUS    RESTARTS   AGE
+grafana-55b57d567b-2gvtk                         0/1       Running   0          12s
+prometheus-alertmanager-85d944f874-64ml2         2/2       Running   0          2m
+prometheus-kube-state-metrics-786b6cbc77-v8cxd   1/1       Running   0          2m
+prometheus-node-exporter-76tsc                   1/1       Running   0          2m
+prometheus-pushgateway-68966b6ff7-kgmf8          1/1       Running   0          2m
+prometheus-server-6966b574d7-5xjrz               2/2       Running   0          2m
+
+
+$ kubectl port-forward grafana-55b57d567b-2gvtk 3000
+Forwarding from 127.0.0.1:3000 -> 3000
 ```
 
 > Browse to http://localhost:3000 to see Grafana
@@ -86,40 +105,53 @@ dbfec4c268d3: Pull complete
 Successfully tagged metrics-tutorial:latest
 ```
 
+Try out service
 ```
 $ docker-compose up -d
 Starting items ... done
-Starting test  ... done
+
+$ curl localhost:8080/items
+[{"item":"apple"}, {"item":"orange"}, {"item":"pear"}]
+
+$ docker-compose down
 ```
 
 ```
 $ helm install --name items ./charts/items
-$ helm install --name test ./charts/test
 ```
 
-```
-$ kubectl get pods
-NAME                                             READY     STATUS    RESTARTS   AGE
-grafana-55b57d567b-xkvs4                         1/1       Running   0          21h
-  .
-  .
-  .
-
-$ kubectl port-forward grafana-55b57d567b-xkvs4 3000
-Forwarding from 127.0.0.1:3000 -> 3000
-```
-
-```
-http://prometheus-prometheus-server.default.svc.cluster.local/
-```
-
+add prometheus client and metrics handler
 ```
 $ vi main.go
-(add import to end of imports)
-"github.com/prometheus/client_golang/prometheus/promhttp"
+import (
+	"io"
+	"math/rand"
+	"net/http"
+	"os"
+	"strconv"
+  // -----------------------------------------------
+  //
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+  //
+  //           ^^^ add line    
+	// -----------------------------------------------
+)
 
-http.Handle("/metrics", promhttp.Handler())
+// ItemList : list of items
+type ItemList []struct {
+	Item string `json:"item"`
+}
 
+func main() {
+	http.HandleFunc("/items", items)
+	http.HandleFunc("/", health)
+
+	// -----------------------------------------------
+	//
+  http.Handle("/metrics", promhttp.Handler())
+  //
+  //           ^^^ add line    
+	// -----------------------------------------------
 ```
 ```
 $vi build.sh
@@ -131,7 +163,6 @@ go get github.com/prometheus/client_golang/prometheus
 
 ```
 $ vi charts/items/templates/service.yaml
-(add annotations for prometheus after labels)
 apiVersion: v1
 kind: Service
 metadata:
@@ -141,7 +172,22 @@ metadata:
     chart: {{ template "items.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
+  # -------------------------------------------
+  #
   annotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: {{ .Values.service.port | quote }}
+  #
+  #             ^^^ add lines
+  # -------------------------------------------
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ template "items.name" . }}
+    release: {{ .Release.Name }}
 ```
