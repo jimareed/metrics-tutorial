@@ -236,3 +236,5 @@ Go in to Grafana and create a chart:
 - Add Panel, Graph
 - Select Panel Title -> Edit
 - Add: go_memstats_alloc_bytes{app="items"}
+
+![Grafana Output](./grafana.png)
