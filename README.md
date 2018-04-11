@@ -211,3 +211,28 @@ $ make build-docker
 $ helm del --purge items
 $ helm install --name items ./charts/items
 ```
+
+put a small load on the service
+```
+$ kubectl port-forward items-d5b6bf545-fxh9z 8080
+(from another terminal session)
+$ ./test
+[{"item":"apple"}, {"item":"orange"}, {"item":"pear"}]
+[{"item":"apple"}, {"item":"orange"}, {"item":"pear"}]
+[{"item":"apple"}, {"item":"orange"}, {"item":"pear"}]
+[{"item":"apple"}, {"item":"orange"}, {"item":"pear"}]
+[{"item":"apple"}, {"item":"orange"}, {"item":"pear"}]
+[{"item":"apple"}, {"item":"orange"}, {"item":"pear"}]
+[{"item":"apple"}, {"item":"orange"}, {"item":"pear"}]
+[{"item":"apple"}, {"item":"orange"}, {"item":"pear"}]
+[{"item":"apple"}, {"item":"orange"}, {"item":"pear"}]
+[{"item":"apple"}, {"item":"orange"}, {"item":"pear"}]
+All done
+````
+
+Go in to Grafana and create a chart:
+- Select: Configuration -> Data Sources -> Kubernetes -> Dashboards
+- Import Prometheus 2 stats
+- Add Panel, Graph
+- Select Panel Title -> Edit
+- Add: go_memstats_alloc_bytes{app="items"}
